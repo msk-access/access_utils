@@ -169,8 +169,6 @@ def parse_picard_insert_size_file(fpath):
     keys = None
     filehandle = open(fpath)
 
-    s_name = None
-    in_hist = False
     for l in filehandle:
         if "InsertSizeMetrics" in l and "## METRICS CLASS" in l:
 
@@ -190,7 +188,7 @@ def parse_picard_insert_size_file(fpath):
                             parsed_data[pair_orientation][k] = float(vals[i].replace(",", "."))
                             print(
                                 "Switching commas for points in '{}': {} - {}".format(
-                                    f["fn"], vals[i], vals[i].replace(",", ".")
+                                    fpath, vals[i], vals[i].replace(",", ".")
                                 )
                             )
                         except ValueError:
@@ -344,11 +342,11 @@ def parse_biometrics(args, samples):
 
     write_html(
         files[0].resolve(),
-        'sequence_qc_mqc.html',
-        'Duplex noise figures',
-        'Charts showing additional duplex noise information for a single sample.',
-        'sequence_qc',
-        'Duplex Noise'
+        'minor_contamination_sites_mqc.html',
+        'Contributing sites',
+        'Charts the sites that contribute to minor contamination.',
+        'contamination',
+        'Contamination'
     )
 
     return samples
@@ -427,6 +425,10 @@ def parse_sequence_qc(args, samples):
             'T>G': float(maf_t_g[maf_t_g>0].mean())
         })
 
+        for sub in ['C>A', 'C>G', 'C>T', 'T>A', 'T>C', 'T>G']:
+            if pd.isna(sequence_qc_substitution_data[s_name][sub]):
+                sequence_qc_substitution_data[s_name][sub] = 0.0
+
     sequence_qc_output = {
         'id': 'sequence_qc_table',
         'section_name': 'Noise metrics',
@@ -481,6 +483,10 @@ def parse_sequence_qc(args, samples):
             'T>C': {'format': '{:,.3}', 'color': '#3977af'},
             'T>G': {'format': '{:,.3}', 'color': '#3977af'}
         }
+
+        fout = open('sequence_qc_substitution_mqc.yaml', 'w')
+        yaml.dump(sequence_qc_substitution_output, fout)
+        fout.close()
     elif len(paths) > 0:
         write_html(
             paths[0].resolve(),
@@ -490,10 +496,6 @@ def parse_sequence_qc(args, samples):
             'sequence_qc',
             'Duplex Noise'
         )
-
-    fout = open('sequence_qc_substitution_mqc.yaml', 'w')
-    yaml.dump(sequence_qc_substitution_output, fout)
-    fout.close()
 
     return samples
 
