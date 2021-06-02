@@ -442,12 +442,12 @@ def parse_sequence_qc(args, samples):
         },
         'data': sequence_qc_data,
         'headers': {
-            'noise_percentage': {'format': '{:,.2}%', 'title': '% Noise'},
-            'noise_percentage_del': {'format': '{:,.2}%', 'title': '% Noise (del)'},
-            'noise_percentage_ns': {'format': '{:,.2}%', 'title': '% Noise (Ns)'},
-            'contributing_sites': {'format': '{:,.0f}', 'title': 'N contibuting sites'},
-            'contributing_sites_ns': {'format': '{:,.0f}', 'title': 'N contibuting sites (Ns)'},
-            'contributing_sites_del': {'format': '{:,.0f}', 'title': 'N contibuting sites (del)'}
+            'noise_percentage': {'format': '{:,.2}%', 'title': '% Noise (ACGT)'},
+            'noise_percentage_del': {'format': '{:,.2}%', 'title': '% Noise (ACGT + Del)'},
+            'noise_percentage_ns': {'format': '{:,.2}%', 'title': '% Noise (ACGT + Ns)'},
+            'contributing_sites': {'format': '{:,.0f}', 'title': 'N contibuting sites (ACGT)'},
+            'contributing_sites_ns': {'format': '{:,.0f}', 'title': 'N contibuting sites (ACGT + Ns)'},
+            'contributing_sites_del': {'format': '{:,.0f}', 'title': 'N contibuting sites (ACGT + Del)'}
         }
     }
 
