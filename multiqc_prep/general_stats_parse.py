@@ -365,15 +365,15 @@ def parse_sequence_qc(args, samples):
         sequence_qc_data[s_name] = {}
 
         sequence_qc_data[s_name].update({
-            'N minor alleles': f_data['minor_allele_count'].get(s_name),
-            'N major allele': f_data['major_allele_count'].get(s_name),
-            '% Noise': f_data['noise_fraction'].get(s_name),
-            'N contibuting sites': f_data['contributing_sites'].get(s_name)
+            'N_minor_alleles': f_data['minor_allele_count'].get(s_name),
+            'N_major_allele': f_data['major_allele_count'].get(s_name),
+            'noise_percentage': float(f_data['noise_fraction'].get(s_name)) * 100,
+            'contributing_sites': f_data['contributing_sites'].get(s_name)
         })
 
         if s_name in samples:
-            samples[s_name]['noise_percentage'] = sequence_qc_data[s_name]['% Noise']
-            samples[s_name]['noise_n_sites'] = sequence_qc_data[s_name]['N contibuting sites']
+            samples[s_name]['noise_percentage'] = sequence_qc_data[s_name]['noise_percentage']
+            samples[s_name]['contributing_sites'] = sequence_qc_data[s_name]['contributing_sites']
 
     for path in Path(args.dir).rglob("*noise_del.tsv"):
         f_data = pd.read_csv(path.resolve(), sep='\t')
@@ -381,10 +381,10 @@ def parse_sequence_qc(args, samples):
         s_name = path.name.replace('noise_del.tsv', '')
 
         sequence_qc_data[s_name].update({
-            'N deletions': f_data['del_count'].get(s_name),
-            'Total base count (del)': f_data['total_base_count'].get(s_name),
-            '% Noise (del)': f_data['noise_fraction'].get(s_name),
-            'N contibuting sites (del)': f_data['contributing_sites'].get(s_name)
+            'n_deletions': f_data['del_count'].get(s_name),
+            'total_base_count_del': f_data['total_base_count'].get(s_name),
+            'noise_percentage_del': float(f_data['noise_fraction'].get(s_name))*100,
+            'contributing_sites_del': f_data['contributing_sites'].get(s_name)
         })
 
     for path in Path(args.dir).rglob("*noise_n.tsv"):
@@ -393,10 +393,10 @@ def parse_sequence_qc(args, samples):
         s_name = path.name.replace('noise_n.tsv', '')
 
         sequence_qc_data[s_name].update({
-            'Ns': f_data['n_count'].get(s_name),
-            'Total base count (Ns)': f_data['total_base_count'].get(s_name),
-            '% Noise (Ns)': f_data['noise_fraction'].get(s_name),
-            'N contibuting sites (Ns)': f_data['contributing_sites'].get(s_name)
+            'ns': f_data['n_count'].get(s_name),
+            'total_base_count_ns': f_data['total_base_count'].get(s_name),
+            'noise_percentage_ns': float(f_data['noise_fraction'].get(s_name))*100,
+            'contributing_sites_ns': f_data['contributing_sites'].get(s_name)
         })
 
     for path in Path(args.dir).rglob("*noise_positions.tsv"):
@@ -427,7 +427,7 @@ def parse_sequence_qc(args, samples):
 
         for sub in ['C>A', 'C>G', 'C>T', 'T>A', 'T>C', 'T>G']:
             if pd.isna(sequence_qc_substitution_data[s_name][sub]):
-                sequence_qc_substitution_data[s_name][sub] = 0.0
+                sequence_qc_substitution_data[s_name][sub] = 0
 
     sequence_qc_output = {
         'id': 'sequence_qc_table',
@@ -442,12 +442,12 @@ def parse_sequence_qc(args, samples):
         },
         'data': sequence_qc_data,
         'headers': {
-            '% Noise': {'format': '{:,.3}%'},
-            '% Noise (del)': {'format': '{:,.3}%'},
-            '% Noise (Ns)': {'format': '{:,.3}%'},
-            'N contibuting sites': {},
-            'N contibuting sites (Ns)': {},
-            'N contibuting sites (del)': {}
+            'noise_percentage': {'format': '{:,.2}%', 'title': '% Noise'},
+            'noise_percentage_del': {'format': '{:,.2}%', 'title': '% Noise (del)'},
+            'noise_percentage_ns': {'format': '{:,.2}%', 'title': '% Noise (Ns)'},
+            'contributing_sites': {'format': '{:,.0f}', 'title': 'N contibuting sites'},
+            'contributing_sites_ns': {'format': '{:,.0f}', 'title': 'N contibuting sites (Ns)'},
+            'contributing_sites_del': {'format': '{:,.0f}', 'title': 'N contibuting sites (del)'}
         }
     }
 
