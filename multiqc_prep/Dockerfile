@@ -32,6 +32,8 @@ RUN apt-get -y update \
     && cd /tmp \
     && wget https://github.com/msk-access/access_utils/archive/refs/heads/multiqc-utils.zip \
     && unzip multiqc-utils.zip \
-    && mv ./access_utils-multiqc-utils/multiqc_prep/general_stats_parse.py /usr/bin \
+    && cd access_utils-multiqc-utils \
+    && pip install -r requirements.txt \
+    && mv ./multiqc_prep/general_stats_parse.py /usr/bin \
     && chmod 755 /usr/bin/general_stats_parse.py \
     && rm -rf /tmp/*
