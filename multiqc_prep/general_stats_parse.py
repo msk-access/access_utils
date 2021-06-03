@@ -216,7 +216,7 @@ def parse_picard(args, samples):
 
         if sample in samples and parsed_data:
             samples[sample]['raw_coverage_a'] = \
-                parsed_data['MSK-ACCESS-v1_0-probe-A_baits']['MEAN_BAIT_COVERAGE']
+                parsed_data['MSK-ACCESS-v1_0-probe-A_baits']['MEAN_TARGET_COVERAGE']
 
             samples[sample]['PCT_PF_UQ_READS_ALIGNED'] = \
                 parsed_data['MSK-ACCESS-v1_0-probe-A_baits']['PCT_PF_UQ_READS_ALIGNED']
@@ -231,7 +231,7 @@ def parse_picard(args, samples):
 
         if sample in samples and parsed_data:
             samples[sample]['raw_coverage_b'] = \
-                parsed_data['MSK-ACCESS-v1_0-probe-B_baits']['MEAN_BAIT_COVERAGE']
+                parsed_data['MSK-ACCESS-v1_0-probe-B_baits']['MEAN_TARGET_COVERAGE']
 
     # parse duplex BAM pool A picard metrics
 
