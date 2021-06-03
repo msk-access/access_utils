@@ -1,4 +1,4 @@
-################## BASE IMAGE ######################
+Dockerfile################## BASE IMAGE ######################
 
 FROM python:3.6-slim
 
@@ -33,7 +33,7 @@ RUN apt-get -y update \
     && wget https://github.com/msk-access/access_utils/archive/refs/heads/multiqc-utils.zip \
     && unzip multiqc-utils.zip \
     && cd access_utils-multiqc-utils \
-    && pip install -r requirements.txt \
+    && pip install -r ./multiqc_prep/requirements.txt \
     && mv ./multiqc_prep/general_stats_parse.py /usr/bin \
     && chmod 755 /usr/bin/general_stats_parse.py \
     && rm -rf /tmp/*
