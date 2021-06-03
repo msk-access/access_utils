@@ -48,6 +48,7 @@ SAMPLE_META_COLS = [
 def get_args():
     parser = argparse.ArgumentParser(description='Prepare data for multiqc.')
     parser.add_argument('--dir', type=str, default=".", help='Directory containing results.')
+    parser.add_argument('--samples-json', type=str, default="sample_info.json", help='Sample JSON file.')
     args = parser.parse_args()
     return args
 
@@ -83,7 +84,7 @@ def save_sample_meta(samples):
 
 def create_sample_meta_info(args):
 
-    files = list(Path(args.dir).rglob("sample_info.json"))
+    files = list(Path(args.dir).rglob(args.samples_json))
     if len(files) == 0:
         print('could not find sample_info.json file!')
         sys.exit(1)
@@ -215,7 +216,7 @@ def parse_picard(args, samples):
 
         if sample in samples and parsed_data:
             samples[sample]['raw_coverage_a'] = \
-                parsed_data['MSK-ACCESS-v1_0-probe-A_baits']['MEAN_TARGET_COVERAGE']
+                parsed_data['MSK-ACCESS-v1_0-probe-A_baits']['MEAN_BAIT_COVERAGE']
 
             samples[sample]['PCT_PF_UQ_READS_ALIGNED'] = \
                 parsed_data['MSK-ACCESS-v1_0-probe-A_baits']['PCT_PF_UQ_READS_ALIGNED']
@@ -230,7 +231,7 @@ def parse_picard(args, samples):
 
         if sample in samples and parsed_data:
             samples[sample]['raw_coverage_b'] = \
-                parsed_data['MSK-ACCESS-v1_0-probe-B_baits']['MEAN_TARGET_COVERAGE']
+                parsed_data['MSK-ACCESS-v1_0-probe-B_baits']['MEAN_BAIT_COVERAGE']
 
     # parse duplex BAM pool A picard metrics
 
@@ -417,15 +418,15 @@ def parse_sequence_qc(args, samples):
         sequence_qc_substitution_data[s_name] = {}
 
         sequence_qc_substitution_data[s_name].update({
-            'C>A': float(maf_c_a[maf_c_a>0].mean()),
-            'C>G': float(maf_c_g[maf_c_g>0].mean()),
-            'C>T': float(maf_c_t[maf_c_t>0].mean()),
-            'T>A': float(maf_t_a[maf_t_a>0].mean()),
-            'T>C': float(maf_t_c[maf_t_c>0].mean()),
-            'T>G': float(maf_t_g[maf_t_g>0].mean())
+            'C_A': float(maf_c_a[maf_c_a>0].mean()),
+            'C_G': float(maf_c_g[maf_c_g>0].mean()),
+            'C_T': float(maf_c_t[maf_c_t>0].mean()),
+            'T_A': float(maf_t_a[maf_t_a>0].mean()),
+            'T_C': float(maf_t_c[maf_t_c>0].mean()),
+            'T_G': float(maf_t_g[maf_t_g>0].mean())
         })
 
-        for sub in ['C>A', 'C>G', 'C>T', 'T>A', 'T>C', 'T>G']:
+        for sub in ['C_A', 'C_G', 'C_T', 'T_A', 'T_C', 'T_G']:
             if pd.isna(sequence_qc_substitution_data[s_name][sub]):
                 sequence_qc_substitution_data[s_name][sub] = 0
 
@@ -443,11 +444,11 @@ def parse_sequence_qc(args, samples):
         'data': sequence_qc_data,
         'headers': {
             'noise_percentage': {'format': '{:,.2}%', 'title': '% Noise (ACGT)'},
-            'noise_percentage_del': {'format': '{:,.2}%', 'title': '% Noise (ACGT + Del)'},
-            'noise_percentage_ns': {'format': '{:,.2}%', 'title': '% Noise (ACGT + Ns)'},
+            'noise_percentage_del': {'format': '{:,.2}%', 'title': '% Noise (Del)'},
+            'noise_percentage_ns': {'format': '{:,.2}%', 'title': '% Noise (Ns)'},
             'contributing_sites': {'format': '{:,.0f}', 'title': 'N contibuting sites (ACGT)'},
-            'contributing_sites_ns': {'format': '{:,.0f}', 'title': 'N contibuting sites (ACGT + Ns)'},
-            'contributing_sites_del': {'format': '{:,.0f}', 'title': 'N contibuting sites (ACGT + Del)'}
+            'contributing_sites_ns': {'format': '{:,.0f}', 'title': 'N contibuting sites (Ns)'},
+            'contributing_sites_del': {'format': '{:,.0f}', 'title': 'N contibuting sites (Del)'}
         }
     }
 
@@ -476,12 +477,12 @@ def parse_sequence_qc(args, samples):
     if len(sequence_qc_substitution_data) > 1:
         sequence_qc_substitution_output['plot_type'] = 'table'
         sequence_qc_substitution_output['headers'] = {
-            'C>A': {'format': '{:,.3}', 'color': '#3977af'},
-            'C>G': {'format': '{:,.3}', 'color': '#3977af'},
-            'C>T': {'format': '{:,.3}', 'color': '#3977af'},
-            'T>A': {'format': '{:,.3}', 'color': '#3977af'},
-            'T>C': {'format': '{:,.3}', 'color': '#3977af'},
-            'T>G': {'format': '{:,.3}', 'color': '#3977af'}
+            'C_A': {'format': '{:,.3}', 'color': '#3977af', 'title': 'C>A'},
+            'C_G': {'format': '{:,.3}', 'color': '#3977af', 'title': 'C>G'},
+            'C_T': {'format': '{:,.3}', 'color': '#3977af', 'title': 'C>T'},
+            'T_A': {'format': '{:,.3}', 'color': '#3977af', 'title': 'T>A'},
+            'T_C': {'format': '{:,.3}', 'color': '#3977af', 'title': 'T>C'},
+            'T_G': {'format': '{:,.3}', 'color': '#3977af', 'title': 'T>G'}
         }
 
         fout = open('sequence_qc_substitution_mqc.yaml', 'w')
