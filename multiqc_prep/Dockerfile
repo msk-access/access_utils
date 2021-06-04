@@ -27,7 +27,7 @@ LABEL org.opencontainers.image.description="This container uses python3.6 as the
 
 ################## INSTALL ##########################
 
-ADD . /usr/bin
+ADD ./multiqc_prep/* /usr/bin
 WORKDIR /usr/bin
 
 RUN apt-get -y update \
