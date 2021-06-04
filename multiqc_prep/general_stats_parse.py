@@ -2,6 +2,7 @@
 
 import sys
 import json
+import os
 import argparse
 import yaml
 from pathlib import Path
@@ -49,8 +50,10 @@ SAMPLE_META_COLS = [
 
 def get_args():
     parser = argparse.ArgumentParser(description='Prepare data for multiqc.')
-    parser.add_argument('--dir', type=str, default=".", help='Directory containing results.')
-    parser.add_argument('--samples-json', type=str, default="sample_info.json", help='Sample JSON file.')
+    parser.add_argument(
+        '--dir', type=str, default=".", help='Directory containing results.')
+    parser.add_argument(
+        '--samples-json', type=str, required=True, default="sample_info.json", help='Sample JSON file.')
     args = parser.parse_args()
     return args
 
@@ -86,12 +89,11 @@ def save_sample_meta(samples):
 
 def create_sample_meta_info(args):
 
-    files = list(Path(args.dir).rglob(args.samples_json))
-    if len(files) == 0:
-        print('could not find sample_info.json file!')
+    if not os.path.exists(args.samples_json):
+        print('could not find file: {}!'.format(args.samples_json))
         sys.exit(1)
 
-    sample_info = json.load(open(files[0].resolve()))
+    sample_info = json.load(open(args.samples_json))
 
     for i, sample_data in enumerate(sample_info):
         cols = set(SAMPLE_META_COLS).difference(set(sample_data.keys()))
