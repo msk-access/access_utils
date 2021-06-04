@@ -27,13 +27,9 @@ LABEL org.opencontainers.image.description="This container uses python3.6 as the
 
 ################## INSTALL ##########################
 
+ADD . /usr/bin
+WORKDIR /usr/bin
+
 RUN apt-get -y update \
-    && apt-get -y install wget unzip \
-    && cd /tmp \
-    && wget https://github.com/msk-access/access_utils/archive/refs/heads/multiqc-utils.zip \
-    && unzip multiqc-utils.zip \
-    && cd access_utils-multiqc-utils \
-    && pip install -r ./multiqc_prep/requirements.txt \
-    && mv ./multiqc_prep/general_stats_parse.py /usr/bin \
-    && chmod 755 /usr/bin/general_stats_parse.py \
-    && rm -rf /tmp/*
+    && pip install -r requirements.txt \
+    && chmod 755 general_stats_parse.py
