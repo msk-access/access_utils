@@ -365,7 +365,7 @@ def parse_sequence_qc(args, samples):
     for path in Path(args.dir).rglob("*noise_acgt.tsv"):
         f_data = pd.read_csv(path.resolve(), sep='\t')
         f_data = f_data.set_index('sample_id').to_dict()
-        s_name = path.name.replace('noise_acgt.tsv', '')
+        s_name = path.name.replace('_noise_acgt.tsv', '')
 
         sequence_qc_data[s_name] = {}
 
@@ -383,7 +383,7 @@ def parse_sequence_qc(args, samples):
     for path in Path(args.dir).rglob("*noise_del.tsv"):
         f_data = pd.read_csv(path.resolve(), sep='\t')
         f_data = f_data.set_index('sample_id').to_dict()
-        s_name = path.name.replace('noise_del.tsv', '')
+        s_name = path.name.replace('_noise_del.tsv', '')
 
         sequence_qc_data[s_name].update({
             'n_deletions': f_data['del_count'].get(s_name),
@@ -395,7 +395,7 @@ def parse_sequence_qc(args, samples):
     for path in Path(args.dir).rglob("*noise_n.tsv"):
         f_data = pd.read_csv(path.resolve(), sep='\t')
         f_data = f_data.set_index('sample_id').to_dict()
-        s_name = path.name.replace('noise_n.tsv', '')
+        s_name = path.name.replace('_noise_n.tsv', '')
 
         sequence_qc_data[s_name].update({
             'ns': f_data['n_count'].get(s_name),
@@ -418,7 +418,7 @@ def parse_sequence_qc(args, samples):
         maf_t_c = pd.concat([f_data.loc[f_data['ref']=='T', 'C'], f_data.loc[f_data['ref']=='A', 'G']]).values
         maf_t_g = pd.concat([f_data.loc[f_data['ref']=='T', 'G'], f_data.loc[f_data['ref']=='A', 'C']]).values
 
-        s_name = path.name.replace('noise_positions.tsv', '')
+        s_name = path.name.replace('_noise_positions.tsv', '')
         sequence_qc_substitution_data[s_name] = {}
 
         sequence_qc_substitution_data[s_name].update({
