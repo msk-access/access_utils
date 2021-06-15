@@ -70,7 +70,9 @@ def main():
 
 
 def save_sample_meta(samples):
-
+    """
+    Saves the plasma / buffy coat sample meta info for MultiQC tables
+    """
     samples = pd.DataFrame(samples).T
     sample_col = samples.pop('cmoSampleName')
     samples.insert(0, 'cmoSampleName', sample_col)
@@ -88,7 +90,9 @@ def save_sample_meta(samples):
 
 
 def create_sample_meta_info(args):
-
+    """
+    Load and parse samples json for templating
+    """
     if not os.path.exists(args.samples_json):
         print('could not find file: {}!'.format(args.samples_json))
         sys.exit(1)
@@ -107,7 +111,9 @@ def create_sample_meta_info(args):
 
 
 def write_html(html_path_in, html_path_out, section_name, description, parent_id, parent_name):
-
+    """
+    Use `html_path_in` to read and template an HTML file for MultiQC
+    """
     html_file = open(html_path_in, 'r').read()
     header = "<!--\n" + \
         "section_name: '{}'\n".format(section_name) + \
@@ -124,15 +130,21 @@ def write_html(html_path_in, html_path_out, section_name, description, parent_id
 
 
 def get_matching_sample(samples, text):
+    """
+    Only works for CMO sample IDs of the format C-XXXXXX-d (with specific prefix and suffix),
+    or DMP IDs of the format T-XXXXXX (with set number of characters)
+    """
     for sample in samples:
         if text.find(sample) != -1:
             return sample
-
+        
     return text
 
 
 def parse_picard_file(fpath):
-
+    """
+    From MultiQC - Adapted to parse picard outputs so we can display specific metrics in tables
+    """
     parsed_data = dict()
     keys = None
     commadecimal = None
@@ -170,6 +182,9 @@ def parse_picard_file(fpath):
 
 
 def parse_picard_insert_size_file(fpath):
+    """
+    From MultiQC - Adapted to parse picard outputs so we can display specific metrics in tables
+    """
     parsed_data = dict()
     keys = None
     filehandle = open(fpath)
@@ -211,7 +226,9 @@ def parse_picard_insert_size_file(fpath):
 
 
 def parse_picard(args, samples):
-
+    """
+    Parse picard outputs so we can display specific metrics in tables
+    """
     # parse uncollapsed BAM pool A picard metrics
 
     for fpath in Path(args.dir).rglob("uncollapsed_bam_stats_pool_a*/*/*hs_metrics.txt"):
@@ -263,8 +280,14 @@ def parse_picard(args, samples):
 
 
 def parse_biometrics(args, samples):
+    """
+    Major contamination
+    Minor contamination
+    Sex mismatch
+    Genotype
+    """
 
-    # get minor/major contamination
+    # get major contamination
 
     fpath = list(Path(args.dir).rglob("collapsed*/*major_contamination.csv"))
 
@@ -312,7 +335,7 @@ def parse_biometrics(args, samples):
             else:
                 print('{} found in sex mismatch file, but not in sample meta info!'.format(sample))
 
-    # get sex genotype
+    # get genotype
 
     fpath = list(Path(args.dir).rglob("collapsed*/*genotype_comparison.csv"))
 
@@ -358,6 +381,14 @@ def parse_biometrics(args, samples):
 
 
 def parse_sequence_qc(args, samples):
+    """
+    Parses sequence QC metrics, produces plotly HTML snippet for a single sample for the following metrics:
+    
+    Noise for ACGT snps
+    Noise for snps + deletions
+    Noise for snps + N
+    Noise by substitution
+    """
 
     sequence_qc_data = {}
     sequence_qc_substitution_data = {}
