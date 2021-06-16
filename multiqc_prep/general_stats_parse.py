@@ -137,7 +137,7 @@ def get_matching_sample(samples, text):
     for sample in samples:
         if text.find(sample) != -1:
             return sample
-        
+
     return text
 
 
@@ -234,36 +234,38 @@ def parse_picard(args, samples):
     for fpath in Path(args.dir).rglob("uncollapsed_bam_stats_pool_a*/*/*hs_metrics.txt"):
         sample = get_matching_sample(list(samples.keys()), str(fpath))
         parsed_data = parse_picard_file(fpath)
+        bait_set = list(parsed_data.keys())[0]
 
         if sample in samples and parsed_data:
             samples[sample]['raw_coverage_a'] = \
-                parsed_data['MSK-ACCESS-v1_0-probe-A_baits']['MEAN_TARGET_COVERAGE']
+                parsed_data[bait_set]['MEAN_TARGET_COVERAGE']
 
             samples[sample]['PCT_PF_UQ_READS_ALIGNED'] = \
-                parsed_data['MSK-ACCESS-v1_0-probe-A_baits']['PCT_PF_UQ_READS_ALIGNED']
+                parsed_data[bait_set]['PCT_PF_UQ_READS_ALIGNED']
             samples[sample]['TOTAL_READS'] = \
-                parsed_data['MSK-ACCESS-v1_0-probe-A_baits']['TOTAL_READS'] / 2
+                parsed_data[bait_set]['TOTAL_READS'] / 2
 
     # parse uncollapsed BAM pool B picard metrics
 
     for fpath in Path(args.dir).rglob("uncollapsed_bam_stats_pool_b*/*/*hs_metrics.txt"):
         sample = get_matching_sample(list(samples.keys()), str(fpath))
         parsed_data = parse_picard_file(fpath)
+        bait_set = list(parsed_data.keys())[0]
 
         if sample in samples and parsed_data:
             samples[sample]['raw_coverage_b'] = \
-                parsed_data['MSK-ACCESS-v1_0-probe-B_baits']['MEAN_TARGET_COVERAGE']
+                parsed_data[bait_set]['MEAN_TARGET_COVERAGE']
 
     # parse duplex BAM pool A picard metrics
 
     for fpath in Path(args.dir).rglob("duplex_bam_stats_pool_a*/*/*hs_metrics.txt"):
         sample = get_matching_sample(list(samples.keys()), str(fpath))
         parsed_data = parse_picard_file(fpath)
+        bait_set = list(parsed_data.keys())[0]
 
         if sample in samples and parsed_data:
             samples[sample]['duplex_target_coverage'] = \
-                parsed_data['MSK-ACCESS-v1_0-probe-A_baits'].get('MEAN_TARGET_COVERAGE')
-
+                parsed_data[bait_set].get('MEAN_TARGET_COVERAGE')
 
     # parse picard insert metrics
 
@@ -383,7 +385,7 @@ def parse_biometrics(args, samples):
 def parse_sequence_qc(args, samples):
     """
     Parses sequence QC metrics, produces plotly HTML snippet for a single sample for the following metrics:
-    
+
     Noise for ACGT snps
     Noise for snps + deletions
     Noise for snps + N
