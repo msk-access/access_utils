@@ -54,6 +54,8 @@ def get_args():
         '--dir', type=str, default=".", help='Directory containing results.')
     parser.add_argument(
         '--samples-json', type=str, required=True, default="sample_info.json", help='Sample JSON file.')
+    parser.add_argument(
+        '--config', type=str, required=True, default="config.yaml", help='MultiQC config file.')
     args = parser.parse_args()
     return args
 
@@ -61,12 +63,87 @@ def get_args():
 def main():
     args = get_args()
 
+    parse_config(args.config)
     samples = create_sample_meta_info(args)
     samples = parse_sequence_qc(args, samples)
     samples = parse_biometrics(args, samples)
     samples = parse_picard(args, samples)
 
     save_sample_meta(samples)
+
+
+def parse_cond_format(conditions):
+    if conditions is None:
+        return ''
+
+    condition_keys = []
+    for cond in conditions:
+        condition_keys.append(list(cond.keys())[0])
+
+    text = []
+    key_to_symbol = {
+        'eq': '==', 'ne': '!=', 'gt': '>', 'lt': '<', 's_eq': 'equals',
+        's_contains': 'contains', 's_ne': 'not equal'}
+
+    for cond in conditions:
+        cond_key, cond_val = list(cond.items())[0]
+        text.append('value {} {}'.format(
+            key_to_symbol[cond_key], cond_val
+        ))
+
+    if len(text) > 1:
+        text = ['({})'.format(i) for i in text]
+
+    return ' or '.join(text)
+
+
+def parse_config(fpath):
+
+    config = yaml.safe_load(open(fpath))
+
+    if 'custom_data' not in config or 'table_cond_formatting_rules' not in config:
+        return
+
+    # from the custom_data, get any column names
+    colId_to_colName = {}
+
+    for section, section_data in config['custom_data'].items():
+        if 'headers' not in section_data:
+            continue
+
+        section_name = section_data.get('section_name', '')
+
+        for header, header_data in section_data['headers'].items():
+            if 'title' not in header_data:
+                continue
+
+            colId_to_colName[header] = {
+                'title': header_data['title'],
+                'section_name': section_name
+            }
+
+    # parse the thresholds
+
+    data = []
+    for name, rules in config['table_cond_formatting_rules'].items():
+        if name in ['all_columns']:
+            continue
+
+        pass_criterion = parse_cond_format(rules.get('pass'))
+        warn_criterion = parse_cond_format(rules.get('warn'))
+        fail_criterion = parse_cond_format(rules.get('fail'))
+
+        data.append({
+            'Section name': colId_to_colName.get(name, {}).get('section_name', ''),
+            'Metric': colId_to_colName.get(name, {}).get('title', name),
+            'Matric ID': name,
+            'Pass condition': pass_criterion,
+            'Warn condition': warn_criterion,
+            'Fail condition': fail_criterion
+        })
+
+    data = pd.DataFrame(data)
+    data.to_csv('qc_criterion_mqc.csv', index=False)
 
 
 def save_sample_meta(samples):
@@ -398,14 +475,18 @@ def parse_sequence_qc(args, samples):
     for path in Path(args.dir).rglob("*noise_acgt.tsv"):
         f_data = pd.read_csv(path.resolve(), sep='\t')
         f_data = f_data.set_index('sample_id').to_dict()
-        s_name = path.name.replace('_noise_acgt.tsv', '')
+        s_name = path.name.replace('_noise_acgt.tsv', '').replace('noise_acgt.tsv', '')
 
         sequence_qc_data[s_name] = {}
+
+        noise_percentage = f_data['noise_fraction'].get(s_name)
+        if noise_percentage is not None:
+            noise_percentage = float(noise_percentage) * 100
 
         sequence_qc_data[s_name].update({
             'N_minor_alleles': f_data['minor_allele_count'].get(s_name),
             'N_major_allele': f_data['major_allele_count'].get(s_name),
-            'noise_percentage': float(f_data['noise_fraction'].get(s_name)) * 100,
+            'noise_percentage': noise_percentage,
             'contributing_sites': f_data['contributing_sites'].get(s_name)
         })
 
@@ -416,24 +497,32 @@ def parse_sequence_qc(args, samples):
     for path in Path(args.dir).rglob("*noise_del.tsv"):
         f_data = pd.read_csv(path.resolve(), sep='\t')
         f_data = f_data.set_index('sample_id').to_dict()
-        s_name = path.name.replace('_noise_del.tsv', '')
+        s_name = path.name.replace('_noise_del.tsv', '').replace('noise_del.tsv', '')
+
+        noise_percentage = f_data['noise_fraction'].get(s_name)
+        if noise_percentage is not None:
+            noise_percentage = float(noise_percentage) * 100
 
         sequence_qc_data[s_name].update({
             'n_deletions': f_data['del_count'].get(s_name),
             'total_base_count_del': f_data['total_base_count'].get(s_name),
-            'noise_percentage_del': float(f_data['noise_fraction'].get(s_name))*100,
+            'noise_percentage_del': noise_percentage,
             'contributing_sites_del': f_data['contributing_sites'].get(s_name)
         })
 
     for path in Path(args.dir).rglob("*noise_n.tsv"):
         f_data = pd.read_csv(path.resolve(), sep='\t')
         f_data = f_data.set_index('sample_id').to_dict()
-        s_name = path.name.replace('_noise_n.tsv', '')
+        s_name = path.name.replace('_noise_n.tsv', '').replace('noise_n.tsv', '')
+
+        noise_percentage = f_data['noise_fraction'].get(s_name)
+        if noise_percentage is not None:
+            noise_percentage = float(noise_percentage) * 100
 
         sequence_qc_data[s_name].update({
             'ns': f_data['n_count'].get(s_name),
             'total_base_count_ns': f_data['total_base_count'].get(s_name),
-            'noise_percentage_ns': float(f_data['noise_fraction'].get(s_name))*100,
+            'noise_percentage_ns': noise_percentage,
             'contributing_sites_ns': f_data['contributing_sites'].get(s_name)
         })
 
@@ -451,7 +540,7 @@ def parse_sequence_qc(args, samples):
         maf_t_c = pd.concat([f_data.loc[f_data['ref']=='T', 'C'], f_data.loc[f_data['ref']=='A', 'G']]).values
         maf_t_g = pd.concat([f_data.loc[f_data['ref']=='T', 'G'], f_data.loc[f_data['ref']=='A', 'C']]).values
 
-        s_name = path.name.replace('_noise_positions.tsv', '')
+        s_name = path.name.replace('_noise_positions.tsv', '').replace('noise_positions.tsv', '')
         sequence_qc_substitution_data[s_name] = {}
 
         sequence_qc_substitution_data[s_name].update({
