@@ -87,7 +87,11 @@ def parse_cond_format(conditions):
 
     for cond in conditions:
         cond_key, cond_val = list(cond.items())[0]
-        text.append('value {} {}'.format(
+
+        if cond_key in ['s_eq', 's_contains', 's_ne']:
+            cond_val = "\'{}\'".format(cond_val)
+
+        text.append('x {} {}'.format(
             key_to_symbol[cond_key], cond_val
         ))
 
