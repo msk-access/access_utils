@@ -55,7 +55,7 @@ def get_args():
     parser.add_argument(
         '--samples-json', type=str, required=True, default="sample_info.json", help='Sample JSON file.')
     parser.add_argument(
-        '--config', type=str, required=True, default="config.yaml", help='MultiQC config file.')
+        '--config', type=str, default="config.yaml", help='MultiQC config file.')
     args = parser.parse_args()
     return args
 
@@ -103,6 +103,9 @@ def parse_cond_format(conditions):
 
 def parse_config(fpath):
 
+    if not fpath:
+        return
+
     config = yaml.safe_load(open(fpath))
 
     if 'custom_data' not in config or 'table_cond_formatting_rules' not in config:
@@ -138,16 +141,16 @@ def parse_config(fpath):
         fail_criterion = parse_cond_format(rules.get('fail'))
 
         data.append({
+            'Metric ID': name,
+            'Metric name': colId_to_colName.get(name, {}).get('title', name),
             'Section name': colId_to_colName.get(name, {}).get('section_name', ''),
-            'Metric': colId_to_colName.get(name, {}).get('title', name),
-            'Matric ID': name,
             'Pass condition': pass_criterion,
             'Warn condition': warn_criterion,
             'Fail condition': fail_criterion
         })
 
     data = pd.DataFrame(data)
-    data.to_csv('qc_criterion_mqc.csv', index=False)
+    data.to_csv('qc_criterion.csv', index=False)
 
 
 def save_sample_meta(samples):
