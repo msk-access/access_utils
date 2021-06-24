@@ -118,14 +118,11 @@ def parse_config(fpath):
         if 'headers' not in section_data:
             continue
 
-        section_name = section_data.get('section_name', '')
+        section_name = section_data.get('section_name', section)
 
         for header, header_data in section_data['headers'].items():
-            if 'title' not in header_data:
-                continue
-
             colId_to_colName[header] = {
-                'title': header_data['title'],
+                'title': header_data.get('title', header),
                 'section_name': section_name
             }
 
@@ -143,7 +140,7 @@ def parse_config(fpath):
         data.append({
             'Metric ID': name,
             'Metric name': colId_to_colName.get(name, {}).get('title', name),
-            'Section name': colId_to_colName.get(name, {}).get('section_name', ''),
+            'Section name': colId_to_colName.get(name, {}).get('section_name', '?'),
             'Pass condition': pass_criterion,
             'Warn condition': warn_criterion,
             'Fail condition': fail_criterion
