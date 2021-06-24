@@ -147,7 +147,7 @@ def parse_config(fpath):
         })
 
     data = pd.DataFrame(data)
-    data.to_csv('qc_criterion.csv', index=False)
+    data.to_csv('qc_criteria.csv', index=False)
 
 
 def save_sample_meta(samples):
